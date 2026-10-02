@@ -32,11 +32,12 @@ import logging
 import subprocess
 import uuid
 
-from fastapi import APIRouter, BackgroundTasks, Request, Response
+from fastapi import APIRouter, BackgroundTasks, Depends, Request, Response
 from fastapi.responses import JSONResponse
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+from app.api.deps import require_api_key
 from app.config import settings
 from app.models.model_metadata import ModelMetadata
 from app.models.threat_event import ThreatEvent
@@ -55,7 +56,7 @@ _retrain_lock = asyncio.Lock()
 _synthetic_process: subprocess.Popen[bytes] | None = None
 
 
-@router.get("/status")
+@router.get("/status", dependencies=[Depends(require_api_key)])
 async def model_status(request: Request) -> dict[str, object]:
     """
     Return the status of active ML models
@@ -76,7 +77,7 @@ async def model_status(request: Request) -> dict[str, object]:
     }
 
 
-@router.post("/retrain", status_code=202, response_model=None)
+@router.post("/retrain", status_code=202, response_model=None, dependencies=[Depends(require_api_key)])
 async def retrain(
     request: Request,
     background_tasks: BackgroundTasks,

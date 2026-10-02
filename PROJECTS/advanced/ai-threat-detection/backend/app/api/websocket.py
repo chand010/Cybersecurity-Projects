@@ -24,6 +24,7 @@ import logging
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
+from app.config import settings
 from app.core.alerts import ALERTS_CHANNEL
 from app.core.redis_manager import redis_manager
 
@@ -41,6 +42,14 @@ async def ws_alerts(websocket: WebSocket) -> None:
     Each client gets its own Redis subscriber so this works correctly
     across multiple FastAPI workers.
     """
+    api_key = websocket.headers.get("x-api-key")
+    if not settings.api_key:
+        await websocket.close(code=1011, reason="API authentication is not configured")
+        return
+    if api_key != settings.api_key:
+        await websocket.close(code=1008, reason="Unauthorized")
+        return
+
     await websocket.accept()
 
     redis = redis_manager.client
