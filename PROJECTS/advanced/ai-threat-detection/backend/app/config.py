@@ -47,10 +47,10 @@ class Settings(BaseSettings):
     debug: bool = False
     host: str = "0.0.0.0"
     port: int = 8000
-    api_key: str = ""
+    api_key: str
     log_level: str = "INFO"
 
-    database_url: str = "postgresql+asyncpg://vigil:changeme@localhost:5432/angelusvigil"
+    database_url: str
 
     redis_url: str = "redis://localhost:6379"
 
